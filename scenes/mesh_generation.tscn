@@ -1,0 +1,78 @@
+[gd_scene load_steps=16 format=3 uid="uid://dugu28e7cwvja"]
+
+[ext_resource type="Shader" path="res://shader/texture_shader.gdshader" id="1_ci1p8"]
+[ext_resource type="Script" path="res://scripts/TerrainGenerator.gd" id="1_rhpy5"]
+[ext_resource type="Script" path="res://scripts/LookAt.gd" id="2_exi88"]
+[ext_resource type="Texture2D" uid="uid://bbi7s6jklffij" path="res://assets/grass.jpg" id="2_lnjpc"]
+[ext_resource type="Texture2D" uid="uid://c5eaga3urqpjt" path="res://assets/rock.jpg" id="3_0a2y6"]
+[ext_resource type="Texture2D" uid="uid://tydc2ifg31u6" path="res://assets/heightmap.jpg" id="3_khby7"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_5ptdd"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ujs1j"]
+
+[sub_resource type="Environment" id="Environment_7eydn"]
+fog_light_color = Color(0.517647, 0.552941, 0.607843, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nqns2"]
+render_priority = 0
+shader = ExtResource("1_ci1p8")
+shader_parameter/min_grass_height = -0.3
+shader_parameter/max_rock_height = 1.6
+shader_parameter/uv_scale = Vector2(1, 1)
+shader_parameter/terrain_grass = ExtResource("2_lnjpc")
+shader_parameter/terrain_rock = ExtResource("3_0a2y6")
+
+[sub_resource type="NavigationMesh" id="NavigationMesh_75yjx"]
+
+[sub_resource type="Shader" id="Shader_ndwq6"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_spjjp"]
+render_priority = 0
+shader = SubResource("Shader_ndwq6")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0nxe2"]
+albedo_color = Color(0, 0.52549, 0.929412, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_1ytj5"]
+material = SubResource("StandardMaterial3D_0nxe2")
+size = Vector2(1, 1)
+
+[node name="MeshGeneration" type="Node3D"]
+
+[node name="TEST-STUFF" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="TEST-STUFF" node_paths=PackedStringArray("target")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 32, 42)
+size = 24.711
+near = 0.006
+script = ExtResource("2_exi88")
+target = NodePath("../Ball")
+
+[node name="Ball" type="RigidBody3D" parent="TEST-STUFF"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 32, 32)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TEST-STUFF/Ball"]
+shape = SubResource("SphereShape3D_5ptdd")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TEST-STUFF/Ball"]
+mesh = SubResource("SphereMesh_ujs1j")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.73373, 0.383862, -0.560616, 0, 0.825114, 0.564967, 0.679441, -0.414533, 0.605411, -0.698955, 1.89834, 2.03241)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_7eydn")
+
+[node name="TerrainGenerator" type="Node3D" parent="."]
+script = ExtResource("1_rhpy5")
+noise_seed = 645507467
+heightmap_tex = ExtResource("3_khby7")
+shader_material = SubResource("ShaderMaterial_nqns2")
+navigation_mesh = SubResource("NavigationMesh_75yjx")
+
+[node name="Water" type="MeshInstance3D" parent="."]
+transform = Transform3D(5000, 0, 0, 0, 1, 0, 0, 0, 5000, 0, 0, 0)
+visible = false
+material_override = SubResource("ShaderMaterial_spjjp")
+mesh = SubResource("PlaneMesh_1ytj5")
