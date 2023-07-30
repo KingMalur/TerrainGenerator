@@ -27,7 +27,6 @@ const CENTER_OFFSET: float = 0.5
 @export var create_navigation_region: bool = false: set = _create_navigation_region
 
 @export_category("Noise Configuration")
-var _fast_noise_lite: FastNoiseLite
 @export var noise_seed: int = 0: set = _apply_noise_seed
 @export var generate_new_seed: bool = false: set = _generate_new_seed
 @export var generate_terrain_on_new_seed: bool = true
@@ -68,11 +67,15 @@ var _fast_noise_lite: FastNoiseLite
 @export var shader_material: ShaderMaterial
 @export var navigation_mesh: NavigationMesh
 
+var _fast_noise_lite: FastNoiseLite
+
+var _water_mesh_created: bool = false
+
 var _terrain_min_height: float = 0.0
 var _terrain_max_height: float = 1.0
+
 var _start_time: int = 0
 var _stop_time: int = 0
-var _water_mesh_created: bool = false
 
 
 func _ready() -> void:
