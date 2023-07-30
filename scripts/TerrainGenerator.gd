@@ -43,6 +43,7 @@ var _fast_noise_lite: FastNoiseLite
 @export_enum("16:16", "32:32", "64:64") var chunk_size: int = 16
 @export_range(64, 1024, 64) var terrain_x_size: int = 64
 @export_range(64, 1024, 64) var terrain_z_size: int = 64
+## The generated terrains maximum height (Set to -1 to ignore)
 @export var max_terrain_height: float = 10.0
 ## How many substeps should be performed in one/1 "unit of mesh" (1: 1u = 1 side, 4: 1u = 4 sides)
 @export_enum("1:1", "2:2", "4:4") var terrain_resolution: int = 1
@@ -347,7 +348,8 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 							(z_float / terrain_unit_size) * noise_offset \
 						) * noise_height_modifier
 					y = _sample_heightmap(y, z_float, x_float)
-					if y > max_terrain_height:
+					if max_terrain_height != -1 \
+						&& y > max_terrain_height:
 						y = max_terrain_height
 					
 					if y < _terrain_min_height && y != null:
