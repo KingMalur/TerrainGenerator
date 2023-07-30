@@ -421,9 +421,19 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 		var heightmap_percent_x = x / (terrain_x_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
 		# -> small inacuracies but not enough to fix completely
-		var heightmap_z = clamp(heightmap_percent_z * heightmap_tex.get_height(), 0, heightmap_tex.get_height() - 1)
-		var heightmap_x = clamp(heightmap_percent_x * heightmap_tex.get_width(), 0, heightmap_tex.get_width() - 1)
-		var heightmap_color = heightmap_tex.get_image().get_pixel(heightmap_x, heightmap_z)
+		var heightmap_z = clamp( \
+			heightmap_percent_z * heightmap_tex.get_height(), \
+			0, \
+			heightmap_tex.get_height() - 1)
+		var heightmap_x = clamp( \
+			heightmap_percent_x * heightmap_tex.get_width(), \
+			0, \
+			heightmap_tex.get_width() - 1)
+		var heightmap_color = heightmap_tex \
+			.get_image() \
+			.get_pixel( \
+				heightmap_x, \
+				heightmap_z)
 		# White equals r=1, b=1, g=1
 		# Add all three together and divide by 3 to get the average
 		heightmap_y = (heightmap_color.r + heightmap_color.g + heightmap_color.b) / 3.0
