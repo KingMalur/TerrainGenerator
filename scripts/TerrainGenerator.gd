@@ -363,6 +363,12 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 					if y > _terrain_max_height && y != null:
 						_terrain_max_height = y
 					
+					var x_vertex: float = x_float
+					var z_vertex: float = z_float
+					if center_terrain:
+						x_vertex -= terrain_x_size * terrain_unit_size * CENTER_OFFSET
+						z_vertex -= terrain_z_size * terrain_unit_size * CENTER_OFFSET
+					
 					var uv = Vector2()
 					uv.x = inverse_lerp(0, chunk_size, x_float)
 					uv.y = inverse_lerp(0, chunk_size, z_float)
@@ -370,7 +376,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 					surface_tool.set_uv(uv)
 					if d_print_granular_values: print("UV at %s" % uv)
 					
-					var vertex = Vector3(x_float, y, z_float)
+					var vertex = Vector3(x_vertex, y, z_vertex)
 					surface_tool.add_vertex(vertex)
 					if d_print_granular_values: print("Vertex at %s" % vertex)
 					if d_draw_spheres: _debug_draw_sphere(vertex, sphere_count)
