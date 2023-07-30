@@ -80,8 +80,11 @@ var _stop_time: int = 0
 
 func _ready() -> void:
 	if d_create_on_start:
+		# To get some information about the generated mesh at runtime
+		d_print_values = true
 		# To avoid a re-creation of the terrain
 		generate_terrain_on_new_seed = false
+		_generate_new_seed()
 		_create_new_terrain()
 		_create_water_mesh()
 		_create_navigation_region()
