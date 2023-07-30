@@ -8,6 +8,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+
+- The mesh can now be centered around (0, 0, 0)
+
+## Changed
+
+- If ``create_on_start`` is active and the scene is run, a new seed get's
+generated instead of using the one set in the editor.
+
+## Fixed
+
+- Calculate correct UV-positions for chunk-positions greater (0, 0)
+
 ## [0.0.2] - 2023-07-30
 
 ## Added
@@ -23,7 +36,7 @@ while keeping the same amount of geometry as before. It looks rougher though.
 
 - Project files and REAMDME
 
-[unreleased]: https://github.com/KingMalur/TerrainGenerator/compare/v0.0.2...HEAD
+[unreleased]: https://github.com/KingMalur/TerrainGenerator/compare/v0.0.2...dev
 
 [0.0.2]: https://github.com/KingMalur/TerrainGenerator/releases/tag/v0.0.2
 [0.0.1]: https://github.com/KingMalur/TerrainGenerator/releases/tag/v0.0.1

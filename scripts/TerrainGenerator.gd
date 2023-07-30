@@ -370,8 +370,8 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 						z_vertex -= terrain_z_size * terrain_unit_size * CENTER_OFFSET
 					
 					var uv = Vector2()
-					uv.x = inverse_lerp(0, chunk_size, x_float)
-					uv.y = inverse_lerp(0, chunk_size, z_float)
+					uv.x = inverse_lerp(chunk_start_x, chunk_max_x, x_float)
+					uv.y = inverse_lerp(chunk_start_z, chunk_max_z, z_float)
 					
 					surface_tool.set_uv(uv)
 					if d_print_granular_values: print("UV at %s" % uv)
