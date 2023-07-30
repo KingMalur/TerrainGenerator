@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://dugu28e7cwvja"]
+[gd_scene load_steps=14 format=3 uid="uid://dugu28e7cwvja"]
 
 [ext_resource type="Shader" path="res://shader/texture_shader.gdshader" id="1_ci1p8"]
 [ext_resource type="Script" path="res://scripts/TerrainGenerator.gd" id="1_rhpy5"]
@@ -18,18 +18,12 @@ fog_light_color = Color(0.517647, 0.552941, 0.607843, 1)
 render_priority = 0
 shader = ExtResource("1_ci1p8")
 shader_parameter/min_grass_height = -0.3
-shader_parameter/max_rock_height = 1.6
+shader_parameter/max_rock_height = 5.0
 shader_parameter/uv_scale = Vector2(1, 1)
 shader_parameter/terrain_grass = ExtResource("2_lnjpc")
 shader_parameter/terrain_rock = ExtResource("3_0a2y6")
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_75yjx"]
-
-[sub_resource type="Shader" id="Shader_ndwq6"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_spjjp"]
-render_priority = 0
-shader = SubResource("Shader_ndwq6")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0nxe2"]
 albedo_color = Color(0, 0.52549, 0.929412, 1)
@@ -66,7 +60,6 @@ environment = SubResource("Environment_7eydn")
 
 [node name="TerrainGenerator" type="Node3D" parent="."]
 script = ExtResource("1_rhpy5")
-noise_seed = 645507467
 heightmap_tex = ExtResource("3_khby7")
 shader_material = SubResource("ShaderMaterial_nqns2")
 navigation_mesh = SubResource("NavigationMesh_75yjx")
@@ -74,5 +67,4 @@ navigation_mesh = SubResource("NavigationMesh_75yjx")
 [node name="Water" type="MeshInstance3D" parent="."]
 transform = Transform3D(5000, 0, 0, 0, 1, 0, 0, 0, 5000, 0, 0, 0)
 visible = false
-material_override = SubResource("ShaderMaterial_spjjp")
 mesh = SubResource("PlaneMesh_1ytj5")
