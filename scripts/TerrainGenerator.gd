@@ -17,6 +17,8 @@ const CENTER_OFFSET: float = 0.5
 @export_category("DEBUG")
 ## Creates a base mesh, collisions, nav-mesh & water at start of the scene
 @export var d_create_on_start: bool = false
+## Always create a new seed on start
+@export var d_new_seed_on_start: bool = false
 ## Prints out various information like chunk-size, chunk-positions, etc.
 @export var d_print_values: bool = false
 ## Prints out vertex-/uv-positions, etc. (can fill up the print queue!)
@@ -89,7 +91,8 @@ func _ready() -> void:
 		d_print_values = true
 		# To avoid a re-creation of the terrain
 		generate_terrain_on_new_seed = false
-		_generate_new_seed()
+		if d_new_seed_on_start:
+			_generate_new_seed()
 		_create_new_terrain()
 		_create_water_mesh()
 		_create_navigation_region()
