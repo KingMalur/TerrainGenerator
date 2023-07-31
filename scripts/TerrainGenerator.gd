@@ -7,6 +7,11 @@ extends Node3D
 ## Generates a chunked mesh-array based terrain.
 ## Can also create a navigation meshes and collision shapes based on that terrain.
 
+signal terrain_generated
+signal water_mesh_generated
+signal collision_mesh_generated
+signal navigation_regions_generated
+
 const CENTER_OFFSET: float = 0.5
 
 @export_category("DEBUG")
@@ -116,6 +121,7 @@ func _create_new_terrain(new_value: bool = false) -> void:
 	_delete_all()
 	_generate_terrain()
 	
+	terrain_generated.emit()
 	_stop_timer()
 	
 	create_new_terrain = false
@@ -154,6 +160,7 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 		
 		count += 1
 	
+	collision_mesh_generated.emit()
 	_stop_timer()
 	
 	create_collision_mesh = false
@@ -207,6 +214,7 @@ func _create_navigation_region(new_value: bool = false) -> void:
 		# For naming in scene tree
 		count += 1
 	
+	navigation_regions_generated.emit()
 	_stop_timer()
 	
 	create_navigation_region = false
@@ -231,6 +239,7 @@ func _create_water_mesh(new_value: bool = false) -> void:
 	# Needs to look through the chunks and find a good base water level
 	# If navigation is already created -> recreate the navigation meshes
 	
+	water_mesh_generated.emit()
 	_stop_timer()
 	
 	_water_mesh_created = true
