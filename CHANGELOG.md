@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 
 - The mesh can now be centered around (0, 0, 0)
+- Easing towards ``max_terrain_height`` for flat regions
 
 ## Changed
 
 - If ``create_on_start`` is active and the scene is run, a new seed get's
-generated instead of using the one set in the editor.
+generated instead of using the one set in the editor
+- Use ``d_ignore_max_terrain_height`` instead of setting it to ``-1``
 
 ## Fixed
 
@@ -26,7 +28,7 @@ generated instead of using the one set in the editor.
 
 - The mesh can now be stretched by setting the ``terrain_unit_size``.
 A 1024x1024 size terrain can, using this method, be stretched to 16384x16384 
-while keeping the same amount of geometry as before. It looks rougher though.
+while keeping the same amount of geometry as before. It looks rougher though
 - Ignore ``max_terrain_height`` by setting it to ``-1``
 
 ## [0.0.1] - 2023-07-28

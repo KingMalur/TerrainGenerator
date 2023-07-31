@@ -25,6 +25,8 @@ const CENTER_OFFSET: float = 0.5
 @export var d_print_granular_values: bool = false
 ## CAUTION: Takes a lot of time & RAM if used for big maps (64x64 should be max!)
 @export var d_draw_spheres: bool = false
+## Ignores the max_terrain_height setting
+@export var d_ignore_max_terrain_height: bool = false
 
 @export_category("Workflow")
 @export var reset_all: bool = false: set = _set_reset_all
@@ -49,7 +51,13 @@ const CENTER_OFFSET: float = 0.5
 @export_enum("16:16", "32:32", "64:64") var chunk_size: int = 16
 @export_range(64, 1024, 64) var terrain_x_size: int = 64
 @export_range(64, 1024, 64) var terrain_z_size: int = 64
-## The generated terrains maximum height (Set to -1 to ignore)
+## Eases the generated heights towards the maximum height
+@export var ease_towards_max_terrain_height: bool = false
+## The curve used to ease towards max_terrain_height
+## Use https://raw.githubusercontent.com/godotengine/godot-docs/master/img/ease_cheatsheet.png
+## for reference..
+@export var easing_curve_terrain_height: float = 0.2
+## The generated terrains maximum height
 @export var max_terrain_height: float = 10.0
 ## How many substeps should be performed in one/1 "unit of mesh" (1: 1u = 1 side, 4: 1u = 4 sides)
 @export_enum("1:1", "2:2", "4:4") var terrain_resolution: int = 1
@@ -356,7 +364,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 			if z_float > chunk_max_z:
 				break # Break out to avoid drawing too far in z direction
 			for x in range(chunk_start_x, chunk_max_x + 1, terrain_unit_size):
-				var x_float: float = x * 1.0 
+				var x_float: float = x * 1.0
 				while x_float < (x + 1) * 1.0:
 					if x_float > chunk_max_x:
 						break # Break out to avoid drawing too far in x direction
@@ -365,15 +373,9 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 							(x_float / terrain_unit_size) * noise_offset, \
 							(z_float / terrain_unit_size) * noise_offset \
 						) * noise_height_modifier
-					y = _sample_heightmap(y, z_float, x_float)
-					if max_terrain_height != -1 \
-						&& y > max_terrain_height:
-						y = max_terrain_height
 					
-					if y < _terrain_min_height && y != null:
-						_terrain_min_height = y
-					if y > _terrain_max_height && y != null:
-						_terrain_max_height = y
+					y = _sample_heightmap(y, z_float, x_float)
+					y = _apply_max_terrain_height(y)
 					
 					var x_vertex: float = x_float
 					var z_vertex: float = z_float
@@ -466,6 +468,26 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 		if d_print_granular_values: print("Y-Value in Heightmap: %s" % heightmap_y)
 		# Project the heightmap on the terrain
 		y += heightmap_y * heightmap_modifier
+	
+	return y
+
+
+func _apply_max_terrain_height(y: float) -> float:
+	if !d_ignore_max_terrain_height:
+		if ease_towards_max_terrain_height:
+			var percentage = abs(y) / max_terrain_height
+			var eased_value = ease(percentage, easing_curve_terrain_height)
+			var y_sign: float = 1.0 if y >= 0.0 else -1.0
+			y = max_terrain_height * eased_value * y_sign
+		else:
+			if y > max_terrain_height:
+				y = max_terrain_height
+	
+	# Apply min & max height for shader
+	if y < _terrain_min_height && y != null:
+		_terrain_min_height = y
+	if y > _terrain_max_height && y != null:
+		_terrain_max_height = y
 	
 	return y
 
