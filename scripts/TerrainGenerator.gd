@@ -43,9 +43,12 @@ var _fast_noise_lite: FastNoiseLite
 @export_enum("16:16", "32:32", "64:64") var chunk_size: int = 16
 @export_range(64, 1024, 64) var terrain_x_size: int = 64
 @export_range(64, 1024, 64) var terrain_z_size: int = 64
+## The generated terrains maximum height (Set to -1 to ignore)
 @export var max_terrain_height: float = 10.0
 ## How many substeps should be performed in one/1 "unit of mesh" (1: 1u = 1 side, 4: 1u = 4 sides)
 @export_enum("1:1", "2:2", "4:4") var terrain_resolution: int = 1
+## How "big" one unit in Godot should be -> 1:16 max to really stretch terrain (might look bad..)
+@export_range(1, 16, 1) var terrain_unit_size: int = 1
 
 @export_category("Heightmap Configuration")
 @export var sample_heightmap: bool = false
@@ -243,6 +246,7 @@ func _delete_water_meshes():
 func _generate_new_seed(new_value: bool = false) -> void:
 	_instance_noise_lite()
 	noise_seed = RandomNumberGenerator.new().randi()
+	
 	if generate_terrain_on_new_seed:
 		_create_new_terrain()
 	
@@ -313,15 +317,15 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	var a_mesh = ArrayMesh.new()
 	var surface_tool = SurfaceTool.new()
 	
-	var chunk_start_z = chunk_position.y * chunk_size
-	var chunk_max_z = chunk_start_z + chunk_size
-	var chunk_start_x = chunk_position.x * chunk_size
-	var chunk_max_x = chunk_start_x + chunk_size
+	var chunk_start_z = chunk_position.y * chunk_size * terrain_unit_size
+	var chunk_max_z = chunk_start_z + chunk_size * terrain_unit_size
+	var chunk_start_x = chunk_position.x * chunk_size * terrain_unit_size
+	var chunk_max_x = chunk_start_x + chunk_size * terrain_unit_size
 	
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
 	var sphere_count = 0
-	for z in range(chunk_start_z, chunk_max_z + 1):
+	for z in range(chunk_start_z, chunk_max_z + 1, terrain_unit_size):
 		# TERRAIN RESOLUTION EXPLANATION
 		# Steps for res: 1
 		# z
@@ -333,18 +337,19 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 		while z_float < (z + 1) * 1.0:
 			if z_float > chunk_max_z:
 				break # Break out to avoid drawing too far in z direction
-			for x in range(chunk_start_x, chunk_max_x + 1):
+			for x in range(chunk_start_x, chunk_max_x + 1, terrain_unit_size):
 				var x_float: float = x * 1.0 
 				while x_float < (x + 1) * 1.0:
 					if x_float > chunk_max_x:
 						break # Break out to avoid drawing too far in x direction
 					var y: float = _fast_noise_lite \
 						.get_noise_2d( \
-							x_float * noise_offset, \
-							z_float * noise_offset \
+							(x_float / terrain_unit_size) * noise_offset, \
+							(z_float / terrain_unit_size) * noise_offset \
 						) * noise_height_modifier
 					y = _sample_heightmap(y, z_float, x_float)
-					if y > max_terrain_height:
+					if max_terrain_height != -1 \
+						&& y > max_terrain_height:
 						y = max_terrain_height
 					
 					if y < _terrain_min_height && y != null:
@@ -418,9 +423,19 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 		var heightmap_percent_x = x / (terrain_x_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
 		# -> small inacuracies but not enough to fix completely
-		var heightmap_z = clamp(heightmap_percent_z * heightmap_tex.get_height(), 0, heightmap_tex.get_height() - 1)
-		var heightmap_x = clamp(heightmap_percent_x * heightmap_tex.get_width(), 0, heightmap_tex.get_width() - 1)
-		var heightmap_color = heightmap_tex.get_image().get_pixel(heightmap_x, heightmap_z)
+		var heightmap_z = clamp( \
+			heightmap_percent_z * heightmap_tex.get_height(), \
+			0, \
+			heightmap_tex.get_height() - 1)
+		var heightmap_x = clamp( \
+			heightmap_percent_x * heightmap_tex.get_width(), \
+			0, \
+			heightmap_tex.get_width() - 1)
+		var heightmap_color = heightmap_tex \
+			.get_image() \
+			.get_pixel( \
+				heightmap_x, \
+				heightmap_z)
 		# White equals r=1, b=1, g=1
 		# Add all three together and divide by 3 to get the average
 		heightmap_y = (heightmap_color.r + heightmap_color.g + heightmap_color.b) / 3.0

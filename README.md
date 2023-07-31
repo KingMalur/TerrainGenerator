@@ -4,7 +4,7 @@ This Godot project can create a chunk based mesh-array with collisions and navig
 It's **not yet ready** to be used in a real project! It's just a fun project of mine to learn mesh generation (I added some explanations as comments for myself, maybe they're helpful for you too).  
 
 ## Usage  
-If you do want to use it in you project, just follow these steps:  
+If you do want to use it in your project, just follow these steps:  
 1) Copy the script ``TerrainGenerator.gd`` and attach it to a ``Node3D``  
 2) Save your scene and then reload the saved scene  
 3) Fill in the exported variables with values you like  
@@ -17,11 +17,15 @@ If you do want to use it in you project, just follow these steps:
 - Try to balance the ``noise_height_modifier`` & the ``heightmap_modifier`` when sampling a heightmap  
 - Edit the exported variable ``navigation_mesh`` to adapt it to your requirements  
 - The same is true for the exported variable ``shader_material`` that's currently used to color the terrain  
+- Try to balance the values for ``noise_height_modifier`` & ``max_rock_height`` (in the shader settings) with the ``terrain_unit_size`` <sub><sup>(Multiplying both values with the ``terrain_unit_size`` seems to work pretty good from a bit of testing)<sub><sup>  
 
 ## ToDo  
-- [ ] Create a water mesh & shader  
-- [ ] Add signals  
-- [ ] Better shaders <sub><sup>(Urgent! Current shader looks real bad for bigger terrain..)</sup></sub>  
+- [x] Add unit size changing <sub><sup>(1u in Godot multiplied by X to stretch the terrain)<sub><sup>  
 - [ ] Add ``center_terrain`` <sub><sup>(You can set the flag but it's not doing anything..)</sup></sub>  
+- [ ] Add signals  
 - [ ] Add edge falloff by heightmap or by code <sub><sup>(Could take some percentage and check against current x/z position -> Should be faster than sampling another heightmap)</sub></sup>  
+- [ ] Better shaders <sub><sup>(Urgent! Current shader looks real bad for bigger terrain..)</sup></sub>  
+- [ ] Create a water mesh & shader  
+- [ ] Fix shader breaking on window resize  
+- [ ] Add unit tests :see_no_evil:  
 - [ ] ...  
