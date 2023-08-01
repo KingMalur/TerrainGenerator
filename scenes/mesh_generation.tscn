@@ -70,8 +70,8 @@ environment = SubResource("Environment_7eydn")
 
 [node name="TerrainGenerator" type="Node3D" parent="."]
 script = ExtResource("1_rhpy5")
-d_create_on_start = true
 d_print_values = true
+generate_terrain_on_new_seed = false
 noise_height_modifier = 80.0
 center_terrain = true
 terrain_x_size = 256
