@@ -83,6 +83,8 @@ var _fast_noise_lite: FastNoiseLite
 
 var _water_mesh_created: bool = false
 
+var _is_editor: bool = OS.has_feature("editor")
+
 var _start_time: int = 0
 var _stop_time: int = 0
 
@@ -150,13 +152,15 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 		var tmp_collision_mesh_base_name = collision_mesh_base_name + "%s"
 		static_body.name = tmp_collision_mesh_base_name % count
 		add_child(static_body)
-		static_body.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			static_body.set_owner(get_tree().edited_scene_root)
 		# Create collision_shape and add as child of static_body
 		var collision_shape = CollisionShape3D.new()
 		var tmp_collision_shape_name = collision_shape_base_name + "%s"
 		collision_shape.name = tmp_collision_shape_name % count
 		static_body.add_child(collision_shape)
-		collision_shape.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			collision_shape.set_owner(get_tree().edited_scene_root)
 		
 		# Create collision_shape
 		var mesh: Mesh = child.mesh
@@ -198,11 +202,13 @@ func _create_navigation_region(new_value: bool = false) -> void:
 		var tmp_navigation_region_base_name = navigation_region_base_name + "%s"
 		navigation_region.name = tmp_navigation_region_base_name % count
 		add_child(navigation_region)
-		navigation_region.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			navigation_region.set_owner(get_tree().edited_scene_root)
 		
 		# Reparent chunk-child to navigation_region
 		child.reparent(navigation_region)
-		child.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			child.set_owner(get_tree().edited_scene_root)
 		
 		# TODO: Check for water mesh and eliminate all vertexes below water level
 		if _water_mesh_created:
@@ -214,7 +220,8 @@ func _create_navigation_region(new_value: bool = false) -> void:
 		# Reparent chunk-child to TerrainGenerator-node
 		# -> Easier for later manipulation (just loop through children)
 		child.reparent(self)
-		child.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			child.set_owner(get_tree().edited_scene_root)
 		
 		# For naming in scene tree
 		count += 1
@@ -424,7 +431,8 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	chunk.name = chunk_name
 	
 	add_child(chunk)
-	chunk.set_owner(get_tree().edited_scene_root)
+	if _is_editor:
+		chunk.set_owner(get_tree().edited_scene_root)
 	_update_shader(chunk)
 
 
