@@ -49,18 +49,17 @@ const CENTER_OFFSET: float = 0.5
 @export_enum("16:16", "32:32", "64:64") var chunk_size: int = 16
 @export_range(64, 1024, 64) var terrain_x_size: int = 64
 @export_range(64, 1024, 64) var terrain_z_size: int = 64
-## Eases the generated heights towards the maximum height
-@export var ease_towards_max_terrain_height: bool = false
-## The curve used to ease towards max_terrain_height
-## Use https://raw.githubusercontent.com/godotengine/godot-docs/master/img/ease_cheatsheet.png
-## for reference..
-@export var easing_curve_terrain_height: float = 0.2
-## The generated terrains maximum height
-@export var max_terrain_height: float = 10.0
 ## How many substeps should be performed in one/1 "unit of mesh" (1: 1u = 1 side, 4: 1u = 4 sides)
 @export_enum("1:1", "2:2", "4:4") var terrain_resolution: int = 1
 ## How "big" one unit in Godot should be -> 1:16 max to really stretch terrain (might look bad..)
 @export_range(1, 16, 1) var terrain_unit_size: int = 1
+## The generated terrains maximum height
+@export var max_terrain_height: float = 10.0
+## Eases the generated heights towards the maximum height
+@export var ease_towards_max_terrain_height: bool = false
+## The curve used to ease towards max_terrain_height
+## Reference: https://raw.githubusercontent.com/godotengine/godot-docs/master/img/ease_cheatsheet.png
+@export var easing_curve_max_terrain_height: Curve
 
 @export_category("Heightmap Configuration")
 @export var sample_heightmap: bool = false
@@ -361,20 +360,15 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 				while x_float < (x + 1) * 1.0:
 					if x_float > chunk_max_x:
 						break # Break out to avoid drawing too far in x direction
+					
 					var y: float = _fast_noise_lite \
 						.get_noise_2d( \
 							(x_float / terrain_unit_size) * noise_offset, \
 							(z_float / terrain_unit_size) * noise_offset \
 						) * noise_height_modifier
 					
-					y = _sample_heightmap(y, z_float, x_float)
-					y = _apply_max_terrain_height(y)
-					
-					var x_vertex: float = x_float
-					var z_vertex: float = z_float
-					if center_terrain:
-						x_vertex -= terrain_x_size * terrain_unit_size * CENTER_OFFSET
-						z_vertex -= terrain_z_size * terrain_unit_size * CENTER_OFFSET
+					y = _sample_heightmap(x_float, y, z_float)
+					y = _ease_towards_max_terrain_height(y)
 					
 					var uv = Vector2()
 					uv.x = inverse_lerp(chunk_start_x, chunk_max_x, x_float)
@@ -382,6 +376,12 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 					
 					surface_tool.set_uv(uv)
 					if d_print_granular_values: print("UV at %s" % uv)
+					
+					var x_vertex: float = x_float
+					var z_vertex: float = z_float
+					if center_terrain:
+						x_vertex -= terrain_x_size * terrain_unit_size * CENTER_OFFSET
+						z_vertex -= terrain_z_size * terrain_unit_size * CENTER_OFFSET
 					
 					var vertex = Vector3(x_vertex, y, z_vertex)
 					surface_tool.add_vertex(vertex)
@@ -428,7 +428,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	_update_shader(chunk)
 
 
-func _sample_heightmap(y: float, z: float, x: float) -> float:
+func _sample_heightmap(x: float, y: float, z: float) -> float:
 	if sample_heightmap:
 		# HEIGHTMAP SAMPLING EXPLANATION
 		# |----------------------| Width/Height terrain
@@ -436,8 +436,8 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 		# |----------------x-----| X on Width/Height chunk
 		# X / Width/Height terrain -> progress in percent
 		var heightmap_y = 0
-		var heightmap_percent_z = z / (terrain_z_size * 1.0)
-		var heightmap_percent_x = x / (terrain_x_size * 1.0)
+		var heightmap_percent_z = z / (terrain_z_size * terrain_unit_size * 1.0)
+		var heightmap_percent_x = x / (terrain_x_size * terrain_unit_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
 		# -> small inacuracies but not enough to fix completely
 		var heightmap_z = clamp( \
@@ -463,17 +463,18 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 	return y
 
 
-func _apply_max_terrain_height(y: float) -> float:
-	if !d_ignore_max_terrain_height:
-		if ease_towards_max_terrain_height:
-			var percentage = abs(y) / max_terrain_height
-			var eased_value = ease(percentage, easing_curve_terrain_height)
-			var y_sign: float = 1.0 if y >= 0.0 else -1.0
-			y = max_terrain_height * eased_value * y_sign
-		else:
-			if y > max_terrain_height:
-				y = max_terrain_height
+func _ease_towards_max_terrain_height(y: float) -> float:
+	if d_ignore_max_terrain_height:
+		return y
 	
+	if ease_towards_max_terrain_height:
+		var percentage: float = abs(y) / max_terrain_height
+		var ease_value: float = easing_curve_max_terrain_height.sample(percentage)
+		var y_sign: float = 1.0 if y >= 0.0 else -1.0
+		y = max_terrain_height * ease_value * y_sign
+	else:
+		if y > max_terrain_height:
+			y = max_terrain_height
 	
 	return y
 
