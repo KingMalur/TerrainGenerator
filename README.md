@@ -7,7 +7,7 @@ It's **not yet ready** to be used in a real project! It's just a fun project of 
 If you do want to use it in your project, just follow these steps:  
 1) Copy the script ``TerrainGenerator.gd`` and attach it to a ``Node3D``  
 2) Save your scene and then reload the saved scene  
-3) Fill in the exported variables with values you like  
+3) Fill in the exported variables with values you like (Saved scene's already set up with values I like)  
 4) Hit ``Create New Terrain``, ``Create Water Mesh``, ``Create Collision Mesh`` & ``Create Navigation Region``  
 
 ## Hints  

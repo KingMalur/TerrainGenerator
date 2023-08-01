@@ -27,7 +27,7 @@ point_count = 4
 render_priority = 0
 shader = ExtResource("1_ci1p8")
 shader_parameter/min_grass_height = -0.3
-shader_parameter/max_rock_height = 5.0
+shader_parameter/max_rock_height = 60.0
 shader_parameter/uv_scale = Vector2(1, 1)
 shader_parameter/terrain_grass = ExtResource("2_lnjpc")
 shader_parameter/terrain_rock = ExtResource("3_0a2y6")
@@ -39,7 +39,8 @@ albedo_color = Color(0, 0.52549, 0.929412, 1)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_1ytj5"]
 material = SubResource("StandardMaterial3D_0nxe2")
-size = Vector2(1, 1)
+size = Vector2(1024, 1024)
+subdivide_depth = 10
 
 [node name="MeshGeneration" type="Node3D"]
 
@@ -69,15 +70,25 @@ environment = SubResource("Environment_7eydn")
 
 [node name="TerrainGenerator" type="Node3D" parent="."]
 script = ExtResource("1_rhpy5")
+d_create_on_start = true
+d_print_values = true
+noise_height_modifier = 80.0
+center_terrain = true
+terrain_x_size = 256
+terrain_z_size = 256
+terrain_unit_size = 4
+max_terrain_height = 60.0
 ease_towards_max_terrain_height = true
 easing_curve_max_terrain_height = SubResource("Curve_mgrmx")
 ease_towards_edge = true
 easing_curve_edge = SubResource("Curve_tllk2")
+sample_heightmap = true
+heightmap_modifier = 25.0
 heightmap_tex = ExtResource("3_khby7")
 shader_material = SubResource("ShaderMaterial_nqns2")
 navigation_mesh = SubResource("NavigationMesh_75yjx")
 
 [node name="Water" type="MeshInstance3D" parent="."]
-transform = Transform3D(5000, 0, 0, 0, 1, 0, 0, 0, 5000, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
 visible = false
 mesh = SubResource("PlaneMesh_1ytj5")
