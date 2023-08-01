@@ -23,8 +23,9 @@ If you do want to use it in your project, just follow these steps:
 - [x] Add unit size changing <sub><sup>(1u in Godot multiplied by X to stretch the terrain)<sub><sup>  
 - [x] Add ``center_terrain`` <sub><sup>~~(You can set the flag but it's not doing anything..)~~</sup></sub>  
 - [x] Add signals  
-- [ ] Add edge falloff by heightmap or by code <sub><sup>(Could take some percentage and check against current x/z position -> Should be faster than sampling another heightmap)</sub></sup>  
-- [ ] Better shaders <sub><sup>(Urgent! Current shader looks real bad for bigger terrain..)</sup></sub>  
+- [x] Add edge falloff ~~by heightmap or~~ by code <sub><sup>(Could take some percentage and check against current x/z position -> Should be faster ~~than sampling another heightmap~~)</sub></sup>  
+- [x] Better shaders <sub><sup>(~~Urgent! Current shader looks real bad for bigger terrain..~~ UV-Positions were all over the place..)</sup></sub>  
+- [ ] Fix scene not starting anymore :angry:  
 - [ ] Create a water mesh & shader  
 - [ ] Fix shader breaking on window resize  
 - [ ] Add unit tests :see_no_evil:  
