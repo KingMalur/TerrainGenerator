@@ -23,8 +23,6 @@ const CENTER_OFFSET: float = 0.5
 @export var d_print_values: bool = false
 ## Prints out vertex-/uv-positions, etc. (can fill up the print queue!)
 @export var d_print_granular_values: bool = false
-## CAUTION: Takes a lot of time & RAM if used for big maps (64x64 should be max!)
-@export var d_draw_spheres: bool = false
 ## Ignores the max_terrain_height setting
 @export var d_ignore_max_terrain_height: bool = false
 
@@ -350,7 +348,6 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-	var sphere_count = 0
 	for z in range(chunk_start_z, chunk_max_z + 1, terrain_unit_size):
 		# TERRAIN RESOLUTION EXPLANATION
 		# Steps for res: 1
@@ -393,9 +390,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 					var vertex = Vector3(x_vertex, y, z_vertex)
 					surface_tool.add_vertex(vertex)
 					if d_print_granular_values: print("Vertex at %s" % vertex)
-					if d_draw_spheres: _debug_draw_sphere(vertex, sphere_count)
 					x_float += 1.0 / (terrain_resolution * 1.0)
-					sphere_count += 1
 #				while x_float < (x + 1) * 1.0:
 			z_float += 1.0 / (terrain_resolution * 1.0)
 #			for x in range(chunk_start_x, chunk_max_x + 1):
@@ -492,16 +487,6 @@ func _apply_max_terrain_height(y: float) -> float:
 	return y
 
 
-func _debug_draw_sphere(pos: Vector3, sphere_count: int) -> void:
-	var ins := MeshInstance3D.new()
-	add_child(ins)
-	ins.name = "Sphere #%s" % sphere_count
-	ins.set_owner(get_tree().edited_scene_root)
-	ins.position = pos
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.1
-	sphere.height = 0.2
-	ins.mesh = sphere
 
 
 func _start_timer() -> void:
