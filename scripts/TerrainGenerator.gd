@@ -60,6 +60,10 @@ const CENTER_OFFSET: float = 0.5
 ## The curve used to ease towards max_terrain_height
 ## Reference: https://raw.githubusercontent.com/godotengine/godot-docs/master/img/ease_cheatsheet.png
 @export var easing_curve_max_terrain_height: Curve
+## Eases towards the edge of the mesh (to generate islands)
+@export var ease_towards_edge: bool = false
+## Teh curve used to ease towards the edge of the mesh
+@export var easing_curve_edge: Curve
 
 @export_category("Heightmap Configuration")
 @export var sample_heightmap: bool = false
@@ -376,6 +380,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 					
 					y = _sample_heightmap(x_float, y, z_float)
 					y = _ease_towards_max_terrain_height(y)
+					y = _ease_towards_edge(x_float, y, z_float)
 					
 					var uv = Vector2()
 					uv.x = inverse_lerp(chunk_start_x, chunk_max_x, x_float)
@@ -487,6 +492,33 @@ func _ease_towards_max_terrain_height(y: float) -> float:
 	return y
 
 
+func _ease_towards_edge(x: float, y: float, z: float) -> float:
+	if !ease_towards_edge:
+		return y
+	if y <= 0:
+		return y
+	
+	# TODO: Move calculation of middle, mid_point_ & distance_to_middle
+	# outside of this function
+	var middle: Vector3 = Vector3(
+		terrain_x_size * terrain_unit_size / 2.0, \
+		0, \
+		terrain_z_size * terrain_unit_size / 2.0)
+	
+	var mid_point_on_short_side: Vector3 = Vector3(0, 0, terrain_z_size * terrain_unit_size / 2.0)
+	if terrain_x_size < terrain_z_size:
+		mid_point_on_short_side = Vector3(terrain_x_size * terrain_unit_size / 2.0, 0, 0)
+	
+	var distance_to_middle: float = middle.distance_to(mid_point_on_short_side)
+	var point_on_mesh: Vector3 = Vector3(x, 0, z)
+	var distance_point_to_middle: float = middle.distance_to(point_on_mesh)
+	var curve_offset: float = clampf((distance_point_to_middle / distance_to_middle), 0.0, 1.0)
+	
+	var value_on_curve: float = easing_curve_edge.sample(curve_offset)
+	
+	y *= value_on_curve
+	
+	return y
 
 
 func _start_timer() -> void:

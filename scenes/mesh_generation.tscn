@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://dugu28e7cwvja"]
+[gd_scene load_steps=16 format=3 uid="uid://dugu28e7cwvja"]
 
 [ext_resource type="Shader" path="res://shader/texture_shader.gdshader" id="1_ci1p8"]
 [ext_resource type="Script" path="res://scripts/TerrainGenerator.gd" id="1_rhpy5"]
@@ -13,6 +13,15 @@
 
 [sub_resource type="Environment" id="Environment_7eydn"]
 fog_light_color = Color(0.517647, 0.552941, 0.607843, 1)
+
+[sub_resource type="Curve" id="Curve_mgrmx"]
+_data = [Vector2(0, 0), 0.0, 2.87652, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Curve" id="Curve_tllk2"]
+bake_resolution = 512
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.702041, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 4
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_nqns2"]
 render_priority = 0
@@ -60,6 +69,10 @@ environment = SubResource("Environment_7eydn")
 
 [node name="TerrainGenerator" type="Node3D" parent="."]
 script = ExtResource("1_rhpy5")
+ease_towards_max_terrain_height = true
+easing_curve_max_terrain_height = SubResource("Curve_mgrmx")
+ease_towards_edge = true
+easing_curve_edge = SubResource("Curve_tllk2")
 heightmap_tex = ExtResource("3_khby7")
 shader_material = SubResource("ShaderMaterial_nqns2")
 navigation_mesh = SubResource("NavigationMesh_75yjx")
