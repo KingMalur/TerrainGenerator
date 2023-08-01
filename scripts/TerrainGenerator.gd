@@ -84,9 +84,6 @@ var _fast_noise_lite: FastNoiseLite
 
 var _water_mesh_created: bool = false
 
-var _terrain_min_height: float = 0.0
-var _terrain_max_height: float = 1.0
-
 var _start_time: int = 0
 var _stop_time: int = 0
 
@@ -331,9 +328,8 @@ func _update_shader(mesh_instance: MeshInstance3D) -> void:
 		return
 	
 	mesh_instance.material_override = shader_material
-	var mat = mesh_instance.get_active_material(0)
-	mat.set_shader_parameter("min_height", _terrain_min_height)
-	mat.set_shader_parameter("max_height", _terrain_max_height)
+	# TODO: Test automatic setting of rock_height, etc.
+	# var mat = mesh_instance.get_active_material(0)
 
 
 func _generate_chunk(chunk_position: Vector2) -> void:
@@ -478,11 +474,6 @@ func _apply_max_terrain_height(y: float) -> float:
 			if y > max_terrain_height:
 				y = max_terrain_height
 	
-	# Apply min & max height for shader
-	if y < _terrain_min_height && y != null:
-		_terrain_min_height = y
-	if y > _terrain_max_height && y != null:
-		_terrain_max_height = y
 	
 	return y
 
