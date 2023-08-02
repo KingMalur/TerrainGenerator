@@ -94,6 +94,9 @@ var _stop_time: int = 0
 
 
 func _ready() -> void:
+	if _is_editor:
+		return
+	
 	if d_create_on_start:
 		# To get some information about the generated mesh at runtime
 		d_print_values = true
