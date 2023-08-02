@@ -7,17 +7,24 @@ extends Node3D
 ## Generates a chunked mesh-array based terrain.
 ## Can also create a navigation meshes and collision shapes based on that terrain.
 
+signal terrain_generated
+signal water_mesh_generated
+signal collision_mesh_generated
+signal navigation_regions_generated
+
 const CENTER_OFFSET: float = 0.5
 
 @export_category("DEBUG")
 ## Creates a base mesh, collisions, nav-mesh & water at start of the scene
 @export var d_create_on_start: bool = false
+## Always create a new seed on start
+@export var d_new_seed_on_start: bool = false
 ## Prints out various information like chunk-size, chunk-positions, etc.
 @export var d_print_values: bool = false
 ## Prints out vertex-/uv-positions, etc. (can fill up the print queue!)
 @export var d_print_granular_values: bool = false
-## CAUTION: Takes a lot of time & RAM if used for big maps (64x64 should be max!)
-@export var d_draw_spheres: bool = false
+## Ignores the max_terrain_height setting
+@export var d_ignore_max_terrain_height: bool = false
 
 @export_category("Workflow")
 @export var reset_all: bool = false: set = _set_reset_all
@@ -27,7 +34,6 @@ const CENTER_OFFSET: float = 0.5
 @export var create_navigation_region: bool = false: set = _create_navigation_region
 
 @export_category("Noise Configuration")
-var _fast_noise_lite: FastNoiseLite
 @export var noise_seed: int = 0: set = _apply_noise_seed
 @export var generate_new_seed: bool = false: set = _generate_new_seed
 @export var generate_terrain_on_new_seed: bool = true
@@ -43,12 +49,21 @@ var _fast_noise_lite: FastNoiseLite
 @export_enum("16:16", "32:32", "64:64") var chunk_size: int = 16
 @export_range(64, 1024, 64) var terrain_x_size: int = 64
 @export_range(64, 1024, 64) var terrain_z_size: int = 64
-## The generated terrains maximum height (Set to -1 to ignore)
-@export var max_terrain_height: float = 10.0
 ## How many substeps should be performed in one/1 "unit of mesh" (1: 1u = 1 side, 4: 1u = 4 sides)
 @export_enum("1:1", "2:2", "4:4") var terrain_resolution: int = 1
 ## How "big" one unit in Godot should be -> 1:16 max to really stretch terrain (might look bad..)
 @export_range(1, 16, 1) var terrain_unit_size: int = 1
+## The generated terrains maximum height
+@export var max_terrain_height: float = 10.0
+## Eases the generated heights towards the maximum height
+@export var ease_towards_max_terrain_height: bool = false
+## The curve used to ease towards max_terrain_height
+## Reference: https://raw.githubusercontent.com/godotengine/godot-docs/master/img/ease_cheatsheet.png
+@export var easing_curve_max_terrain_height: Curve
+## Eases towards the edge of the mesh (to generate islands)
+@export var ease_towards_edge: bool = false
+## Teh curve used to ease towards the edge of the mesh
+@export var easing_curve_edge: Curve
 
 @export_category("Heightmap Configuration")
 @export var sample_heightmap: bool = false
@@ -68,17 +83,24 @@ var _fast_noise_lite: FastNoiseLite
 @export var shader_material: ShaderMaterial
 @export var navigation_mesh: NavigationMesh
 
-var _terrain_min_height: float = 0.0
-var _terrain_max_height: float = 1.0
+var _fast_noise_lite: FastNoiseLite
+
+var _water_mesh_created: bool = false
+
+var _is_editor: bool = OS.has_feature("editor")
+
 var _start_time: int = 0
 var _stop_time: int = 0
-var _water_mesh_created: bool = false
 
 
 func _ready() -> void:
 	if d_create_on_start:
+		# To get some information about the generated mesh at runtime
+		d_print_values = true
 		# To avoid a re-creation of the terrain
 		generate_terrain_on_new_seed = false
+		if d_new_seed_on_start:
+			_generate_new_seed()
 		_create_new_terrain()
 		_create_water_mesh()
 		_create_navigation_region()
@@ -110,6 +132,7 @@ func _create_new_terrain(new_value: bool = false) -> void:
 	_delete_all()
 	_generate_terrain()
 	
+	terrain_generated.emit()
 	_stop_timer()
 	
 	create_new_terrain = false
@@ -133,13 +156,15 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 		var tmp_collision_mesh_base_name = collision_mesh_base_name + "%s"
 		static_body.name = tmp_collision_mesh_base_name % count
 		add_child(static_body)
-		static_body.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			static_body.set_owner(get_tree().edited_scene_root)
 		# Create collision_shape and add as child of static_body
 		var collision_shape = CollisionShape3D.new()
 		var tmp_collision_shape_name = collision_shape_base_name + "%s"
 		collision_shape.name = tmp_collision_shape_name % count
 		static_body.add_child(collision_shape)
-		collision_shape.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			collision_shape.set_owner(get_tree().edited_scene_root)
 		
 		# Create collision_shape
 		var mesh: Mesh = child.mesh
@@ -148,6 +173,7 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 		
 		count += 1
 	
+	collision_mesh_generated.emit()
 	_stop_timer()
 	
 	create_collision_mesh = false
@@ -180,11 +206,13 @@ func _create_navigation_region(new_value: bool = false) -> void:
 		var tmp_navigation_region_base_name = navigation_region_base_name + "%s"
 		navigation_region.name = tmp_navigation_region_base_name % count
 		add_child(navigation_region)
-		navigation_region.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			navigation_region.set_owner(get_tree().edited_scene_root)
 		
 		# Reparent chunk-child to navigation_region
 		child.reparent(navigation_region)
-		child.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			child.set_owner(get_tree().edited_scene_root)
 		
 		# TODO: Check for water mesh and eliminate all vertexes below water level
 		if _water_mesh_created:
@@ -196,11 +224,13 @@ func _create_navigation_region(new_value: bool = false) -> void:
 		# Reparent chunk-child to TerrainGenerator-node
 		# -> Easier for later manipulation (just loop through children)
 		child.reparent(self)
-		child.set_owner(get_tree().edited_scene_root)
+		if _is_editor:
+			child.set_owner(get_tree().edited_scene_root)
 		
 		# For naming in scene tree
 		count += 1
 	
+	navigation_regions_generated.emit()
 	_stop_timer()
 	
 	create_navigation_region = false
@@ -225,6 +255,7 @@ func _create_water_mesh(new_value: bool = false) -> void:
 	# Needs to look through the chunks and find a good base water level
 	# If navigation is already created -> recreate the navigation meshes
 	
+	water_mesh_generated.emit()
 	_stop_timer()
 	
 	_water_mesh_created = true
@@ -307,9 +338,8 @@ func _update_shader(mesh_instance: MeshInstance3D) -> void:
 		return
 	
 	mesh_instance.material_override = shader_material
-	var mat = mesh_instance.get_active_material(0)
-	mat.set_shader_parameter("min_height", _terrain_min_height)
-	mat.set_shader_parameter("max_height", _terrain_max_height)
+	# TODO: Test automatic setting of rock_height, etc.
+	# var mat = mesh_instance.get_active_material(0)
 
 
 func _generate_chunk(chunk_position: Vector2) -> void:
@@ -324,7 +354,6 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	
 	surface_tool.begin(Mesh.PRIMITIVE_TRIANGLES)
 	
-	var sphere_count = 0
 	for z in range(chunk_start_z, chunk_max_z + 1, terrain_unit_size):
 		# TERRAIN RESOLUTION EXPLANATION
 		# Steps for res: 1
@@ -338,38 +367,38 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 			if z_float > chunk_max_z:
 				break # Break out to avoid drawing too far in z direction
 			for x in range(chunk_start_x, chunk_max_x + 1, terrain_unit_size):
-				var x_float: float = x * 1.0 
+				var x_float: float = x * 1.0
 				while x_float < (x + 1) * 1.0:
 					if x_float > chunk_max_x:
 						break # Break out to avoid drawing too far in x direction
+					
 					var y: float = _fast_noise_lite \
 						.get_noise_2d( \
 							(x_float / terrain_unit_size) * noise_offset, \
 							(z_float / terrain_unit_size) * noise_offset \
 						) * noise_height_modifier
-					y = _sample_heightmap(y, z_float, x_float)
-					if max_terrain_height != -1 \
-						&& y > max_terrain_height:
-						y = max_terrain_height
 					
-					if y < _terrain_min_height && y != null:
-						_terrain_min_height = y
-					if y > _terrain_max_height && y != null:
-						_terrain_max_height = y
+					y = _sample_heightmap(x_float, y, z_float)
+					y = _ease_towards_max_terrain_height(y)
+					y = _ease_towards_edge(x_float, y, z_float)
 					
 					var uv = Vector2()
-					uv.x = inverse_lerp(0, chunk_size, x_float)
-					uv.y = inverse_lerp(0, chunk_size, z_float)
+					uv.x = inverse_lerp(chunk_start_x, chunk_max_x, x_float)
+					uv.y = inverse_lerp(chunk_start_z, chunk_max_z, z_float)
 					
 					surface_tool.set_uv(uv)
 					if d_print_granular_values: print("UV at %s" % uv)
 					
-					var vertex = Vector3(x_float, y, z_float)
+					var x_vertex: float = x_float
+					var z_vertex: float = z_float
+					if center_terrain:
+						x_vertex -= terrain_x_size * terrain_unit_size * CENTER_OFFSET
+						z_vertex -= terrain_z_size * terrain_unit_size * CENTER_OFFSET
+					
+					var vertex = Vector3(x_vertex, y, z_vertex)
 					surface_tool.add_vertex(vertex)
 					if d_print_granular_values: print("Vertex at %s" % vertex)
-					if d_draw_spheres: _debug_draw_sphere(vertex, sphere_count)
 					x_float += 1.0 / (terrain_resolution * 1.0)
-					sphere_count += 1
 #				while x_float < (x + 1) * 1.0:
 			z_float += 1.0 / (terrain_resolution * 1.0)
 #			for x in range(chunk_start_x, chunk_max_x + 1):
@@ -407,11 +436,12 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	chunk.name = chunk_name
 	
 	add_child(chunk)
-	chunk.set_owner(get_tree().edited_scene_root)
+	if _is_editor:
+		chunk.set_owner(get_tree().edited_scene_root)
 	_update_shader(chunk)
 
 
-func _sample_heightmap(y: float, z: float, x: float) -> float:
+func _sample_heightmap(x: float, y: float, z: float) -> float:
 	if sample_heightmap:
 		# HEIGHTMAP SAMPLING EXPLANATION
 		# |----------------------| Width/Height terrain
@@ -419,8 +449,8 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 		# |----------------x-----| X on Width/Height chunk
 		# X / Width/Height terrain -> progress in percent
 		var heightmap_y = 0
-		var heightmap_percent_z = z / (terrain_z_size * 1.0)
-		var heightmap_percent_x = x / (terrain_x_size * 1.0)
+		var heightmap_percent_z = z / (terrain_z_size * terrain_unit_size * 1.0)
+		var heightmap_percent_x = x / (terrain_x_size * terrain_unit_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
 		# -> small inacuracies but not enough to fix completely
 		var heightmap_z = clamp( \
@@ -446,16 +476,49 @@ func _sample_heightmap(y: float, z: float, x: float) -> float:
 	return y
 
 
-func _debug_draw_sphere(pos: Vector3, sphere_count: int) -> void:
-	var ins := MeshInstance3D.new()
-	add_child(ins)
-	ins.name = "Sphere #%s" % sphere_count
-	ins.set_owner(get_tree().edited_scene_root)
-	ins.position = pos
-	var sphere := SphereMesh.new()
-	sphere.radius = 0.1
-	sphere.height = 0.2
-	ins.mesh = sphere
+func _ease_towards_max_terrain_height(y: float) -> float:
+	if d_ignore_max_terrain_height:
+		return y
+	
+	if ease_towards_max_terrain_height:
+		var percentage: float = abs(y) / max_terrain_height
+		var ease_value: float = easing_curve_max_terrain_height.sample(percentage)
+		var y_sign: float = 1.0 if y >= 0.0 else -1.0
+		y = max_terrain_height * ease_value * y_sign
+	else:
+		if y > max_terrain_height:
+			y = max_terrain_height
+	
+	return y
+
+
+func _ease_towards_edge(x: float, y: float, z: float) -> float:
+	if !ease_towards_edge:
+		return y
+	if y <= 0:
+		return y
+	
+	# TODO: Move calculation of middle, mid_point_ & distance_to_middle
+	# outside of this function
+	var middle: Vector3 = Vector3(
+		terrain_x_size * terrain_unit_size / 2.0, \
+		0, \
+		terrain_z_size * terrain_unit_size / 2.0)
+	
+	var mid_point_on_short_side: Vector3 = Vector3(0, 0, terrain_z_size * terrain_unit_size / 2.0)
+	if terrain_x_size < terrain_z_size:
+		mid_point_on_short_side = Vector3(terrain_x_size * terrain_unit_size / 2.0, 0, 0)
+	
+	var distance_to_middle: float = middle.distance_to(mid_point_on_short_side)
+	var point_on_mesh: Vector3 = Vector3(x, 0, z)
+	var distance_point_to_middle: float = middle.distance_to(point_on_mesh)
+	var curve_offset: float = clampf((distance_point_to_middle / distance_to_middle), 0.0, 1.0)
+	
+	var value_on_curve: float = easing_curve_edge.sample(curve_offset)
+	
+	y *= value_on_curve
+	
+	return y
 
 
 func _start_timer() -> void:
