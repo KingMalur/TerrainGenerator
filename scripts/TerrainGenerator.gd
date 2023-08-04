@@ -95,9 +95,6 @@ var _stop_time: int = 0
 
 
 func _ready() -> void:
-	if _is_editor:
-		return
-	
 	if d_create_on_start:
 		# To get some information about the generated mesh at runtime
 		d_print_values = true
@@ -332,9 +329,13 @@ func _generate_terrain() -> void:
 		 [amount_chunks, z_chunk_amount, x_chunk_amount])
 	
 	@warning_ignore("integer_division")
+	var chunk_counter: int = 0
 	for chunk_z in z_chunk_amount:
 		# ! ALL POSITIONS (CHUNKS INCLUDED) GET SET IN THE VERTICES !
 		for chunk_x in x_chunk_amount:
+			chunk_counter += 1
+			if d_print_values: print("Generating chunk #%s of %s" % \
+				[chunk_counter, amount_chunks])
 			_generate_chunk(Vector2(chunk_x, chunk_z))
 
 

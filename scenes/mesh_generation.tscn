@@ -45,16 +45,16 @@ subdivide_depth = 10
 [node name="MeshGeneration" type="Node3D"]
 
 [node name="TEST-STUFF" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 64, 32)
 
 [node name="Camera3D" type="Camera3D" parent="TEST-STUFF" node_paths=PackedStringArray("target")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 32, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0)
 size = 24.711
 near = 0.006
 script = ExtResource("2_exi88")
 target = NodePath("../Ball")
 
 [node name="Ball" type="RigidBody3D" parent="TEST-STUFF"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 32, 32)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="TEST-STUFF/Ball"]
 shape = SubResource("SphereShape3D_5ptdd")
