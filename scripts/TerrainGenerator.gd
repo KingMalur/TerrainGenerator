@@ -93,6 +93,8 @@ var _is_editor: bool = OS.has_feature("editor")
 var _start_time: int = 0
 var _stop_time: int = 0
 
+var _heightmap_values: Dictionary
+
 
 func _ready() -> void:
 	if d_create_on_start:
@@ -129,6 +131,10 @@ func _set_reset_all(new_value: bool = false) -> void:
 @warning_ignore("unused_parameter")
 func _create_new_terrain(new_value: bool = false) -> void:
 	print("Generating terrain..")
+	
+	if sample_heightmap:
+		_import_heightmap()
+	
 	_start_timer()
 	
 	_delete_all()
@@ -273,6 +279,28 @@ func _delete_water_meshes():
 		child.free()
 	
 	_water_mesh_created = false
+
+
+@warning_ignore("unused_parameter")
+func _import_heightmap(new_value: bool = false) -> void:
+	print("Importing heightmap..")
+	_start_timer()
+	
+	var heightmap_image = heightmap_tex.get_image()
+	var heightmap_x_size = heightmap_tex.get_width()
+	var heightmap_z_size = heightmap_tex.get_height()
+	
+	_heightmap_values = {}
+	for x in heightmap_x_size:
+		for z in heightmap_z_size:
+			var color = heightmap_image.get_pixel(x, z)
+			# White equals r=1, b=1, g=1
+			# Add all three together and divide by 3 to get the average
+			var y_value: float = (color.r + color.g + color.b) / 3.0
+			var dict_key = "%s, %s" % [x, z]
+			_heightmap_values[dict_key] = y_value
+	
+	_stop_timer()
 
 
 @warning_ignore("unused_parameter")
@@ -454,7 +482,6 @@ func _sample_heightmap(x: float, y: float, z: float) -> float:
 		# |--------- | Width/Height heightmap
 		# |----------------x-----| X on Width/Height chunk
 		# X / Width/Height terrain -> progress in percent
-		var heightmap_y = 0
 		var heightmap_percent_z = z / (terrain_z_size * terrain_unit_size * 1.0)
 		var heightmap_percent_x = x / (terrain_x_size * terrain_unit_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
@@ -467,14 +494,8 @@ func _sample_heightmap(x: float, y: float, z: float) -> float:
 			heightmap_percent_x * heightmap_tex.get_width(), \
 			0, \
 			heightmap_tex.get_width() - 1)
-		var heightmap_color = heightmap_tex \
-			.get_image() \
-			.get_pixel( \
-				heightmap_x, \
-				heightmap_z)
-		# White equals r=1, b=1, g=1
-		# Add all three together and divide by 3 to get the average
-		heightmap_y = (heightmap_color.r + heightmap_color.g + heightmap_color.b) / 3.0
+		var dict_key = "%s, %s" % [heightmap_x, heightmap_z]
+		var heightmap_y = _heightmap_values[dict_key]
 		if d_print_granular_values: print("Y-Value in Heightmap: %s" % heightmap_y)
 		# Project the heightmap on the terrain
 		y += heightmap_y * heightmap_modifier
