@@ -23,7 +23,7 @@ bake_resolution = 512
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.702041, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 4
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_nqns2"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_3hrjr"]
 render_priority = 0
 shader = ExtResource("1_ci1p8")
 shader_parameter/min_grass_height = -0.3
@@ -85,7 +85,7 @@ easing_curve_edge = SubResource("Curve_tllk2")
 sample_heightmap = true
 heightmap_modifier = 25.0
 heightmap_tex = ExtResource("3_khby7")
-shader_material = SubResource("ShaderMaterial_nqns2")
+ground_shader_material = SubResource("ShaderMaterial_3hrjr")
 navigation_mesh = SubResource("NavigationMesh_75yjx")
 
 [node name="Water" type="MeshInstance3D" parent="."]

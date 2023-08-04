@@ -80,7 +80,8 @@ const CENTER_OFFSET: float = 0.5
 @export var water_mesh_base_name: String = "Water-Mesh #"
 
 @export_category("Misc Configuration")
-@export var shader_material: ShaderMaterial
+@export var ground_shader_material: ShaderMaterial
+@export var water_shader_material: ShaderMaterial
 @export var navigation_mesh: NavigationMesh
 
 var _fast_noise_lite: FastNoiseLite
@@ -104,6 +105,7 @@ func _ready() -> void:
 		generate_terrain_on_new_seed = false
 		if d_new_seed_on_start:
 			_generate_new_seed()
+		
 		_create_new_terrain()
 		_create_water_mesh()
 		_create_navigation_region()
@@ -336,7 +338,7 @@ func _generate_terrain() -> void:
 			_generate_chunk(Vector2(chunk_x, chunk_z))
 
 
-func _update_shader(mesh_instance: MeshInstance3D) -> void:
+func _update_shader(mesh_instance: MeshInstance3D, shader_material: ShaderMaterial) -> void:
 	if get_child_count() <= 0:
 		return
 	
@@ -441,7 +443,7 @@ func _generate_chunk(chunk_position: Vector2) -> void:
 	add_child(chunk)
 	if _is_editor:
 		chunk.set_owner(get_tree().edited_scene_root)
-	_update_shader(chunk)
+	_update_shader(chunk, ground_shader_material)
 
 
 func _sample_heightmap(x: float, y: float, z: float) -> float:
@@ -513,6 +515,7 @@ func _ease_towards_edge(x: float, y: float, z: float) -> float:
 		mid_point_on_short_side = Vector3(terrain_x_size * terrain_unit_size / 2.0, 0, 0)
 	
 	var distance_to_middle: float = middle.distance_to(mid_point_on_short_side)
+	
 	var point_on_mesh: Vector3 = Vector3(x, 0, z)
 	var distance_point_to_middle: float = middle.distance_to(point_on_mesh)
 	var curve_offset: float = clampf((distance_point_to_middle / distance_to_middle), 0.0, 1.0)
