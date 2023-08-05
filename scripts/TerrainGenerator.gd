@@ -468,11 +468,11 @@ func _sample_heightmap(x: float, y: float, z: float) -> float:
 		var heightmap_percent_x = x / (terrain_x_size * terrain_unit_size * 1.0)
 		# clamp with (max - 1) to avoid index too high error
 		# -> small inacuracies but not enough to fix completely
-		var heightmap_z = clamp( \
+		var heightmap_z = clampi( \
 			heightmap_percent_z * heightmap_tex.get_height(), \
 			0, \
 			heightmap_tex.get_height() - 1)
-		var heightmap_x = clamp( \
+		var heightmap_x = clampi( \
 			heightmap_percent_x * heightmap_tex.get_width(), \
 			0, \
 			heightmap_tex.get_width() - 1)
