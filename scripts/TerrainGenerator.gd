@@ -151,14 +151,10 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 	print("Creating collision mesh..")
 	_start_timer()
 	
-	_delete_collision_meshes()
+	_delete_child_with_prefix(collision_mesh_base_name)
 	
 	var count = 0
-	for child in get_children():
-		# Filter for chunk-objects
-		if !child.name.begins_with(chunk_base_name):
-			continue
-		
+	for child in _get_children_with_prefix(chunk_base_name):
 		# Create static_body for attaching collision_shape
 		var static_body = StaticBody3D.new()
 		var tmp_collision_mesh_base_name = collision_mesh_base_name + "%s"
@@ -187,27 +183,16 @@ func _create_collision_mesh(new_value: bool = false) -> void:
 	create_collision_mesh = false
 
 
-func _delete_collision_meshes():
-	for child in get_children():
-		# Filter for collision_mesh-objects
-		if !child.name.begins_with(collision_mesh_base_name):
-			continue
-		child.free()
-
-
 @warning_ignore("unused_parameter")
 func _create_navigation_region(new_value: bool = false) -> void:
 	print("Creating navigation regions..")
 	_start_timer()
 	
-	_delete_navigation_regions()
+	
+	_delete_child_with_prefix(navigation_region_base_name)
 	
 	var count = 0
-	for child in get_children():
-		# Filter for chunk-objects
-		if !child.name.begins_with(chunk_base_name):
-			continue
-		
+	for child in _get_children_with_prefix(chunk_base_name):
 		# Create navigation_region
 		var navigation_region = NavigationRegion3D.new()
 		navigation_region.navigation_mesh = navigation_mesh
@@ -244,20 +229,14 @@ func _create_navigation_region(new_value: bool = false) -> void:
 	create_navigation_region = false
 
 
-func _delete_navigation_regions():
-	for child in get_children():
-		# Filter for navigation_region-objects
-		if !child.name.begins_with(navigation_region_base_name):
-			continue
-		child.free()
-
-
 @warning_ignore("unused_parameter")
 func _create_water_mesh(new_value: bool = false) -> void:
 	print("Creating water mesh..")
 	_start_timer()
 	
-	_delete_water_meshes()
+	_delete_child_with_prefix(water_mesh_base_name)
+	_water_mesh_created = false
+	
 	
 	# Basically a huge plain mesh with at water shader
 	# Needs to look through the chunks and find a good base water level
@@ -269,16 +248,6 @@ func _create_water_mesh(new_value: bool = false) -> void:
 	_water_mesh_created = true
 	
 	create_water_mesh = false
-
-
-func _delete_water_meshes():
-	for child in get_children():
-		# Filter for water_mesh-objects
-		if !child.name.begins_with(water_mesh_base_name):
-			continue
-		child.free()
-	
-	_water_mesh_created = false
 
 
 @warning_ignore("unused_parameter")
@@ -557,3 +526,19 @@ func _stop_timer() -> void:
 	_stop_time = Time.get_ticks_msec()
 	var time_diff = _stop_time - _start_time
 	print("Elapsed time in seconds: %s" % (time_diff / 1000.0))
+
+
+func _get_children_with_prefix(prefix: String) -> Array:
+	var children: Array = []
+	
+	for child in get_children():
+		if child.name.begins_with(prefix):
+			children.push_back(child)
+	
+	print(children.size())
+	return children
+
+
+func _delete_child_with_prefix(prefix: String) -> void:
+	for child in _get_children_with_prefix(prefix):
+		child.free()
