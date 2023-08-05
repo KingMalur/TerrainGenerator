@@ -11,8 +11,7 @@ If you do want to use it in your project, just follow these steps:
 4) Hit ``Create New Terrain``, ``Create Water Mesh``, ``Create Collision Mesh`` & ``Create Navigation Region``  
 
 ## Hints  
-- Don't set ``d_draw_spheres`` to true for big terrains or high values of ``terrain_resolution``. Godot likes to crash if you do..  
-- It takes around 6 to 7 seconds for a terrain of size 1024x1024 with a chunk size of 64 <sub><sup>(On an i5-9400 with 8GB of RAM - integrated GPU)</sup></sub>  
+- It takes around 6 <sub><sup>(no edge falloff, no max height, no heightmap)</sup></sub> to 12 seconds for a terrain of size 1024x1024 with a chunk size of 64 <sub><sup>(On an i5-9400 with 8GB of RAM - integrated GPU)</sup></sub>  
 - Be careful with the noise configuration values, too harsh of a change might make your terrain look funky  
 - Try to balance the ``noise_height_modifier`` & the ``heightmap_modifier`` when sampling a heightmap  
 - Edit the exported variable ``navigation_mesh`` to adapt it to your requirements  
