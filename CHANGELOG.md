@@ -8,6 +8,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+## Changed
+
+- Heightmap gets imported into a dictionary for performance reasons
+- ``shader_material`` was renamed to ``ground_shader_material`` as preparation
+for water mesh & shader generation
+
+## Fixed
+
+- Saved scene would not start on ``Run Current Scene`` because heightmap
+sampling took too long and crashed Godot
+
+## Removed
+
+- Falloff.jpg was not needed and therefore removed
+
 ## [0.0.3] - 2023-08-01
 
 ## Added
