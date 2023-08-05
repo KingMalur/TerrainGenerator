@@ -84,16 +84,15 @@ const CENTER_OFFSET: float = 0.5
 @export var water_shader_material: ShaderMaterial
 @export var navigation_mesh: NavigationMesh
 
-var _fast_noise_lite: FastNoiseLite
-
-var _water_mesh_created: bool = false
-
+# Private variables
 var _is_editor: bool = OS.has_feature("editor")
+
+var _fast_noise_lite: FastNoiseLite
+var _heightmap_values: Dictionary
+var _water_mesh_created: bool = false
 
 var _start_time: int = 0
 var _stop_time: int = 0
-
-var _heightmap_values: Dictionary
 
 
 func _ready() -> void:
