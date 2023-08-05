@@ -27,8 +27,7 @@ If you do want to use it in your project, just follow these steps:
 - [x] Better shaders <sub><sup>(~~Urgent! Current shader looks real bad for bigger terrain..~~ UV-Positions were all over the place..)</sup></sub>  
 - [x] Fix scene not starting anymore ~~:angry:~~  
 - [x] Fix scene startup taking ages on ``Run Current Scene (F6)``  
-- [ ] Rename member variables  
-- [ ] Add member variables for easing towards edge
+- [x] Add member variables for easing towards edge
 - [ ] Add automatic settings adjustment for noise, terrain, heightmap & shader configuration based on terrain_resolution  
 - [ ] Create a water mesh & shader  
 - [ ] Fix shader breaking on window resize  

@@ -91,6 +91,10 @@ var _fast_noise_lite: FastNoiseLite
 var _heightmap_values: Dictionary
 var _water_mesh_created: bool = false
 
+var _middle_of_mesh: Vector3
+var _mid_point_on_short_side: Vector3
+var _distance_to_middle: float
+
 var _start_time: int = 0
 var _stop_time: int = 0
 
@@ -324,6 +328,16 @@ func _generate_terrain() -> void:
 	if d_print_values: print("Generating %s chunks in a %sx%s grid." %
 		 [amount_chunks, z_chunk_amount, x_chunk_amount])
 	
+	# Setting up values for easing towards edge
+	_middle_of_mesh = Vector3( \
+		terrain_x_size * terrain_unit_size / 2.0, \
+		0, \
+		terrain_z_size * terrain_unit_size / 2.0)
+	_mid_point_on_short_side = Vector3(0, 0, terrain_z_size * terrain_unit_size / 2.0)
+	if terrain_x_size < terrain_z_size:
+		_mid_point_on_short_side = Vector3(terrain_x_size * terrain_unit_size / 2.0, 0, 0)
+	_distance_to_middle = _middle_of_mesh.distance_to(_mid_point_on_short_side)
+	
 	@warning_ignore("integer_division")
 	var chunk_counter: int = 0
 	for chunk_z in z_chunk_amount:
@@ -493,22 +507,9 @@ func _ease_towards_edge(x: float, y: float, z: float) -> float:
 	if y <= 0:
 		return y
 	
-	# TODO: Move calculation of middle, mid_point_ & distance_to_middle
-	# outside of this function
-	var middle: Vector3 = Vector3(
-		terrain_x_size * terrain_unit_size / 2.0, \
-		0, \
-		terrain_z_size * terrain_unit_size / 2.0)
-	
-	var mid_point_on_short_side: Vector3 = Vector3(0, 0, terrain_z_size * terrain_unit_size / 2.0)
-	if terrain_x_size < terrain_z_size:
-		mid_point_on_short_side = Vector3(terrain_x_size * terrain_unit_size / 2.0, 0, 0)
-	
-	var distance_to_middle: float = middle.distance_to(mid_point_on_short_side)
-	
 	var point_on_mesh: Vector3 = Vector3(x, 0, z)
-	var distance_point_to_middle: float = middle.distance_to(point_on_mesh)
-	var curve_offset: float = clampf((distance_point_to_middle / distance_to_middle), 0.0, 1.0)
+	var distance_point_to_middle: float = _middle_of_mesh.distance_to(point_on_mesh)
+	var curve_offset: float = clampf((distance_point_to_middle / _distance_to_middle), 0.0, 1.0)
 	
 	var value_on_curve: float = easing_curve_edge.sample(curve_offset)
 	
